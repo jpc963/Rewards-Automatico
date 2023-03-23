@@ -7,12 +7,6 @@ from time import sleep
 import random
 from webdriver_manager.chrome import ChromeDriverManager
 
-options = webdriver.ChromeOptions()
-options.add_argument("--window-size=1000,1000")
-driver = webdriver.Chrome(ChromeDriverManager().install(), options=options)
-
-wait = WebDriverWait(driver, 10)
-
 
 def contas(conta=0):
     """Retorna um dicionário com as contas de e-mail e suas respectivas senhas."""
@@ -25,11 +19,9 @@ def contas(conta=0):
     # Caso queira dividir as contas em dois navegadores é só criar outro arquivo igual ao 'links.py' e colocar no parâmetro 'conta' um dos números abaixo
     if conta == 1:
         lista_contas = {k: v for k, v in lista_contas.items() if k in list(lista_contas.keys())[:6]}  # Pega as 6 primeiras contas do dicionário
-        driver.set_window_position(0, 0)
 
     if conta == 2:
         lista_contas = {k: v for k, v in lista_contas.items() if k in list(lista_contas.keys())[6:]}  # Pega a partir da 6° conta do dicionário
-        driver.set_window_position(1000, 0)
 
     return lista_contas
 
@@ -50,7 +42,7 @@ def numeros_aleatorios(qtd):
     return numeros
 
 
-def links_clicaveis(*partial_link_text):
+def links_clicaveis(wait, driver, *partial_link_text):
     """Clica nos links disponíveis na página de recompensas do Bing.
 
     Parâmetros:
@@ -77,7 +69,7 @@ def links_clicaveis(*partial_link_text):
             pass
 
 
-def quiz(partial_link_text, *answer):
+def quiz(wait, driver, partial_link_text, *answer):
     """Responde os 'quiz' disponíveis na página de recompensas do Rewards.
 
     Parâmetros:
@@ -112,7 +104,7 @@ def quiz(partial_link_text, *answer):
     sleep(1)
 
 
-def quiz_2(partial_link_text, qtd_perguntas):
+def quiz_2(wait, driver, partial_link_text, qtd_perguntas):
     """Responde os 'quiz' disponíveis na página de recompensas do Rewards. Essa função serve para o quiz que não tem o botão 'Start quiz' e é feito direto na página do bing.
 
     Parâmetros:
@@ -149,7 +141,7 @@ def quiz_2(partial_link_text, qtd_perguntas):
     sleep(1)
 
 
-def daily_poll(partial_link_text):
+def daily_poll(wait, driver, partial_link_text):
     """Responde a enquete diária disponível na página de recompensas do Rewards.
 
     Parâmetros:
@@ -177,40 +169,28 @@ def daily_poll(partial_link_text):
     sleep(2)
 
 
-def login(conta, senha):
+def login(conta, senha, driver, wait):
     """Faz o login na conta do Rewards.
 
-    Parâmetros:
-    conta: Email da conta do Rewards
+    Parâmetro:
+    conta: Conta do Rewards
     senha: Senha da conta do Rewards
     """
 
-    driver.get('https://www.bing.com/')
-    apareceu_email = False  # Variável para verificar se o campo de email apareceu
-    while not apareceu_email:
-        try:
-            try:
-                WebDriverWait(driver, 2).until(EC.element_to_be_clickable((By.ID, 'id_s'))).click()  # Clica no botão 'Sign in' enquanto o campo de email não aparecer
-            except:
-                pass
-            WebDriverWait(driver, 2).until(EC.element_to_be_clickable((By.XPATH, '//*[@id="i0116"]'))).send_keys(conta)  # Caso o campo de email apareça, ele será preenchido
-            apareceu_email = True  # Se o campo de email aparecer, a variável apareceu_email será True e o loop será interrompido
-        except:
-            pass
+    driver.get('https://login.live.com/login.srf?wa=wsignin1.0&rpsnv=13&id=264960&wreply=https%3a%2f%2fwww.bing.com')  # Acessa a página de login do Bing
+    driver.set_page_load_timeout(10)
+    wait.until(EC.element_to_be_clickable((By.XPATH, '//*[@id="i0116"]'))).send_keys(conta)
     wait.until(EC.element_to_be_clickable((By.ID, 'idSIButton9'))).click()
 
-    conta_pessoal = False  # Variável para verificar se o botão 'Conta pessoal' apareceu
-    while not conta_pessoal:
+    while True:
         try:
             try:
-                WebDriverWait(driver, 2).until(EC.element_to_be_clickable((By.XPATH, '//*[@id="i0118"]'))
-                ).clear()  # Caso o campo de senha apareça, o loop será interrompido e o campo será limpo
+                WebDriverWait(driver, 2).until(EC.element_to_be_clickable((By.XPATH, '//*[@id="i0118"]'))).clear()
                 break
             except:
                 pass
-            WebDriverWait(driver, 2).until(EC.element_to_be_clickable((By.ID, 'msaTileTitle'))
-            ).click()  # Caso o botão 'Conta pessoal' apareça, ele será clicado e o loop será interrompido
-            conta_pessoal = True
+            WebDriverWait(driver, 2).until(EC.element_to_be_clickable((By.ID, 'msaTileTitle'))).click()
+            break
         except:
             pass
 
@@ -220,7 +200,66 @@ def login(conta, senha):
     wait.until(EC.element_to_be_clickable((By.ID, 'idSIButton9'))).click()
     sleep(1)
 
+    # Aceita os cookies se aparecer para aceitar, se não, passa
     try:
-        WebDriverWait(driver, 2).until(EC.presence_of_element_located((By.ID, 'bnp_btn_accept'))).click()  # Caso o botão 'Aceitar' apareça, ele será clicado
+        WebDriverWait(driver, 2).until(EC.visibility_of_element_located((By.ID, 'bnp_btn_accept'))).click()
     except:
         pass
+
+
+def pesquisas_pc(numeros, driver, wait):
+    """Realiza pesquisas no Bing Rewards no computador.
+
+    Parâmetros:
+    numeros: Quantidade de pesquisas que serão realizadas
+
+    Exemplo:
+    pesquisas_pc(30)
+    """
+
+    # Clica no botão de pesquisa
+    wait.until(EC.element_to_be_clickable((By.ID, 'sb_form_q'))).click()
+
+    # Realiza as pesquisas
+    for k, numero in enumerate(numeros_aleatorios(numeros)):
+        if k == 10 or k == 20:  # A cada 10 pesquisas, o navegador vai ser atualizado para evitar possíveis travamentos
+            driver.refresh()
+            sleep(2)
+        wait.until(EC.element_to_be_clickable((By.ID, 'sb_form_q'))).clear()
+        wait.until(EC.element_to_be_clickable((By.ID, 'sb_form_q'))).send_keys(numero)
+        wait.until(EC.element_to_be_clickable((By.ID, 'sb_form_q'))).send_keys(Keys.ENTER)
+        sleep(.7)
+
+
+def pesquisas_cel(numeros_cel, driver, wait):
+    """Realiza pesquisas no celular.
+
+    Parâmetros:
+    numeros_cel: Quantidade de pesquisas que serão realizadas
+
+    Exemplo:
+    pesquisas_cel(30)
+    """
+
+    # Clica no botão de pesquisa
+    wait.until(EC.element_to_be_clickable((By.ID, 'sb_form_q'))).click()
+
+    # Realiza as pesquisas
+    for k, numero in enumerate(numeros_aleatorios(numeros_cel)):
+        if k == 10 or k == 20:  # A cada 10 pesquisas, o navegador vai ser atualizado para evitar possíveis travamentos
+            driver.refresh()
+            sleep(2)
+        wait.until(EC.element_to_be_clickable((By.ID, 'sb_form_q'))).clear()
+        wait.until(EC.element_to_be_clickable((By.ID, 'sb_form_q'))).send_keys(numero)
+        wait.until(EC.element_to_be_clickable((By.ID, 'sb_form_q'))).send_keys(Keys.ENTER)
+        sleep(.7)
+
+
+def limpar_dados(driver, conta):
+    """Limpa os dados do navegador"""
+    sleep(1)
+    print(conta + ' - OK')  # Printa o e-mail da conta que foi feito as pesquisas
+    driver.get('chrome://settings/clearBrowserData')
+    sleep(1)
+    driver.find_element(By.XPATH, '//settings-ui').send_keys(Keys.TAB + Keys.ENTER)
+    sleep(1)
