@@ -16,11 +16,12 @@ def contas(conta=0):
         'conta2@gmail.com': 'senha2',
     }
 
+    # Caso queira dividir as contas em dois navegadores é só criar outro arquivo igual ao 'links.py' e colocar no parâmetro 'conta' um dos números abaixo
     if conta == 1:
-        lista_contas = {k: v for k, v in lista_contas.items() if k in list(lista_contas.keys())[:6]}
+        lista_contas = {k: v for k, v in lista_contas.items() if k in list(lista_contas.keys())[:6]}  # Pega as 6 primeiras contas do dicionário
 
     if conta == 2:
-        lista_contas = {k: v for k, v in lista_contas.items() if k in list(lista_contas.keys())[6:]}
+        lista_contas = {k: v for k, v in lista_contas.items() if k in list(lista_contas.keys())[6:]}  # Pega a partir da 6° conta do dicionário
 
     return lista_contas
 
@@ -37,7 +38,7 @@ def numeros_aleatorios(qtd):
 
     numeros = []
     while len(numeros) < qtd:
-        numeros.append('cpf ' + str(random.randint(10_000_000, 99_999_999)))
+        numeros.append('cpf ' + str(random.randint(10_000_000, 99_999_999)))  # Qualquer coisa para ser pesquisada no Bing
     return numeros
 
 
@@ -52,17 +53,17 @@ def links_clicaveis(wait, driver, *partial_link_text):
     """
 
     for link in partial_link_text:
-        tem_link = True
-        try:
+        tem_link = True  # Variável para verificar se o link existe
+        try:  # Tenta clicar no link, se não existir, passa para o próximo
             wait.until(EC.element_to_be_clickable((By.PARTIAL_LINK_TEXT, link))).click()
         except:
             tem_link = False
             pass
-        if tem_link:
+        if tem_link:  # Se o link existir, ele será aberto em uma nova aba e fechado após 3 segundos
             sleep(3)
-            driver.switch_to.window(driver.window_handles[1])
+            driver.switch_to.window(driver.window_handles[1])  # Muda para a nova aba
             driver.close()
-            driver.switch_to.window(driver.window_handles[0])
+            driver.switch_to.window(driver.window_handles[0])  # Muda para a aba principal
             sleep(1)
         elif not tem_link:
             pass
@@ -80,16 +81,16 @@ def quiz(wait, driver, partial_link_text, *answer):
     quiz('Supersonic quiz', 3, 4, 5, 6)
     """
 
-    tem_quiz = True
-    wait.until(EC.element_to_be_clickable((By.PARTIAL_LINK_TEXT, partial_link_text))).click()
+    tem_quiz = True  # Variável para verificar se o quiz existe e pode ser respondido
+    wait.until(EC.element_to_be_clickable((By.PARTIAL_LINK_TEXT, partial_link_text))).click()  # Clica no link do quiz
     sleep(7)
     driver.switch_to.window(driver.window_handles[1])
     try:
-        wait.until(EC.element_to_be_clickable((By.ID, 'rqStartQuiz'))).click()
-    except:
+        wait.until(EC.element_to_be_clickable((By.ID, 'rqStartQuiz'))).click()  # Clica no botão 'Start quiz'
+    except:  # Se não existir o botão 'Start quiz', significa que o quiz já foi respondido, então passa para o próximo
         tem_quiz = False
         pass
-    if tem_quiz:
+    if tem_quiz:  # Se o quiz existir, ele será respondido
         sleep(2)
         for i in answer:
             try:
@@ -118,19 +119,19 @@ def quiz_2(wait, driver, partial_link_text, qtd_perguntas):
     wait.until(EC.element_to_be_clickable((By.PARTIAL_LINK_TEXT, partial_link_text))).click()
     sleep(7)
     driver.switch_to.window(driver.window_handles[1])
-    wait.until(EC.visibility_of_element_located((By.ID, 'ListOfQuestionAndAnswerPanes')))
+    wait.until(EC.visibility_of_element_located((By.ID, 'ListOfQuestionAndAnswerPanes')))  # Espera o elemento que contém o quiz ficar visível
     sleep(2)
-    try:
+    try:  # Tenta responder a primeira pergunta do quiz, se não existir, passa para o próximo
         WebDriverWait(driver, 3).until(EC.element_to_be_clickable((By.ID, f'ChoiceText_0_0')))
     except:
         tem_quiz = False
         pass
-    if tem_quiz:
-        for i in range(0, qtd_perguntas):
+    if tem_quiz:  # Se o quiz existir, ele será respondido
+        for i in range(0, qtd_perguntas):  # O número de perguntas do quiz é passado como parâmetro
             try:
-                wait.until(EC.element_to_be_clickable((By.ID, f'ChoiceText_{i}_0'))).click()
+                wait.until(EC.element_to_be_clickable((By.ID, f'ChoiceText_{i}_0'))).click()  # Clica na primeira opção de resposta para cada pergunta
                 sleep(2)
-                wait.until(EC.element_to_be_clickable((By.ID, f'nextQuestionbtn{i}'))).click()
+                wait.until(EC.element_to_be_clickable((By.ID, f'nextQuestionbtn{i}'))).click()  # Clica no botão que vai para a próxima pergunta
                 sleep(2)
             except:
                 pass
@@ -154,12 +155,12 @@ def daily_poll(wait, driver, partial_link_text):
     wait.until(EC.element_to_be_clickable((By.PARTIAL_LINK_TEXT, partial_link_text))).click()
     sleep(4)
     driver.switch_to.window(driver.window_handles[1])
-    resposta = random.choice(['btoption0', 'btoption1'])
+    resposta = random.choice(['btoption0', 'btoption1'])  # Escolhe aleatoriamente uma das opções de resposta
     sleep(1)
-    while not deu_certo:
+    while not deu_certo:  # Tenta clicar na opção de resposta, se não conseguir, tenta novamente
         try:
             wait.until(EC.element_to_be_clickable((By.ID, resposta))).click()
-            deu_certo = True
+            deu_certo = True  # Se conseguir clicar, a variável deu_certo será True e o loop será interrompido
         except:
             pass
     sleep(4)
@@ -176,7 +177,7 @@ def login(conta, senha, driver, wait):
     senha: Senha da conta do Rewards
     """
 
-    driver.get('https://login.live.com/login.srf?wa=wsignin1.0&rpsnv=13&id=264960&wreply=https%3a%2f%2fwww.bing.com')
+    driver.get('https://login.live.com/login.srf?wa=wsignin1.0&rpsnv=13&id=264960&wreply=https%3a%2f%2fwww.bing.com')  # Acessa a página de login do Bing
     driver.set_page_load_timeout(10)
     wait.until(EC.element_to_be_clickable((By.XPATH, '//*[@id="i0116"]'))).send_keys(conta)
     wait.until(EC.element_to_be_clickable((By.ID, 'idSIButton9'))).click()
@@ -199,6 +200,7 @@ def login(conta, senha, driver, wait):
     wait.until(EC.element_to_be_clickable((By.ID, 'idSIButton9'))).click()
     sleep(1)
 
+    # Aceita os cookies se aparecer para aceitar, se não, passa
     try:
         WebDriverWait(driver, 2).until(EC.visibility_of_element_located((By.ID, 'bnp_btn_accept'))).click()
     except:
@@ -215,10 +217,12 @@ def pesquisas_pc(numeros, driver, wait):
     pesquisas_pc(30)
     """
 
+    # Clica no botão de pesquisa
     wait.until(EC.element_to_be_clickable((By.ID, 'sb_form_q'))).click()
 
+    # Realiza as pesquisas
     for k, numero in enumerate(numeros_aleatorios(numeros)):
-        if k == 10 or k == 20:
+        if k == 10 or k == 20:  # A cada 10 pesquisas, o navegador vai ser atualizado para evitar possíveis travamentos
             driver.refresh()
             sleep(2)
         wait.until(EC.element_to_be_clickable((By.ID, 'sb_form_q'))).clear()
@@ -237,10 +241,12 @@ def pesquisas_cel(numeros_cel, driver, wait):
     pesquisas_cel(30)
     """
 
+    # Clica no botão de pesquisa
     wait.until(EC.element_to_be_clickable((By.ID, 'sb_form_q'))).click()
 
+    # Realiza as pesquisas
     for k, numero in enumerate(numeros_aleatorios(numeros_cel)):
-        if k == 10 or k == 20:
+        if k == 10 or k == 20:  # A cada 10 pesquisas, o navegador vai ser atualizado para evitar possíveis travamentos
             driver.refresh()
             sleep(2)
         wait.until(EC.element_to_be_clickable((By.ID, 'sb_form_q'))).clear()
@@ -251,9 +257,8 @@ def pesquisas_cel(numeros_cel, driver, wait):
 
 def limpar_dados(driver, conta):
     """Limpa os dados do navegador"""
-
     sleep(1)
-    print(conta + ' - OK')
+    print(conta + ' - OK')  # Printa o e-mail da conta que foi feito as pesquisas
     driver.get('chrome://settings/clearBrowserData')
     sleep(1)
     driver.find_element(By.XPATH, '//settings-ui').send_keys(Keys.TAB + Keys.ENTER)

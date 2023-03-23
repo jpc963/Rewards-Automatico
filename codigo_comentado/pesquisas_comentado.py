@@ -1,7 +1,7 @@
 from funcoes.geral import *
 
-numeros = 30
-numeros_cel = 20
+numeros = 30  # Quantidade de pesquisas a serem feitas no navegador de PC
+numeros_cel = 20  # Quantidade de pesquisas a serem feitas no navegador de celular
 
 
 def pc():
@@ -14,13 +14,16 @@ def pc():
     wait = WebDriverWait(driver, 10)
 
     for conta, senha in contas().items():
+        # Faz o login
         login(conta, senha, driver, wait)
 
+        # Faz as pesquisas no navegador de PC
         pesquisas_pc(numeros, driver, wait)
 
+        # Limpa os dados do navegador
         limpar_dados(driver, conta)
 
-    driver.quit()
+    driver.quit()  # Fecha o navegador
 
 
 def cel():
@@ -43,5 +46,6 @@ def cel():
     driver.quit()
 
 
+# Executa as funções
 pc()
 cel()
